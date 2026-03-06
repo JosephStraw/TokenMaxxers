@@ -1,0 +1,59 @@
+:root{
+    --word-Color: #dd9206;
+    --Title-Color: var(--word-Color);
+    --Unfocused-Color: #816300;
+    --Clicked-Color: var(--word-Color);
+    --Link-Color: var(--word-Color);
+    --Background-Color: rgb(100, 200, 100);
+    --Header-Background-Color: #005757;
+    --Field-Background-Color: #1a3a3a;
+}
+
+body{
+    margin: 0;
+    background: var(--Background-Color);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100vh;
+}
+header,footer{
+    margin: 0;
+    background: var(--Header-Background-Color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+h1{
+    margin:0;
+    color: var(--Title-Color);
+    font-family: "Bitcount Grid Double", system-ui;
+    font-optical-sizing: auto;
+    font-weight: 350;
+    font-style: normal;
+    font-variation-settings: "wdth" 100;
+
+}
+h2,h3,h4,h5,p{
+    color: var(--Title-Color);
+    margin-bottom: 10px;
+}
+.li-style{
+    display:flex;
+    color: var(--Title-Color);
+    padding-left: 10px;
+}
+.ul-style,footer{
+    list-style: none;
+    padding: 0;
+    display:flex;
+    justify-content: left;
+} 
+.values{
+    color: var(--Title-Color);
+    margin:0;
+    padding:0 0 0 2px;
+}
+.li-style,.values{
+    font-weight: 5000;
+}

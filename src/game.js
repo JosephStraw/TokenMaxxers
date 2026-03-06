@@ -1,39 +1,27 @@
 kaboom({
 
-    width: 1000,
-    height: 700,
-    background: [135, 206, 235]
+    width: Element.innerWidth,
+    height: Element.innerHeight,
+    strech: true,
+    background: [135, 206, 235, 0]
 
 })
 
-const TILE = 64
-const GRID = 10
-
-let eco = 8
+const TILE = 50
+const hGRID = Math.floor(height()/TILE)
+const wGRID = Math.floor(width()/TILE)
+let eco = 10
 let money = 100
 
 let buildings = []
 
-// UI
-const ecoText = add([
-    text("Eco: " + eco),
-    pos(20,20),
-    fixed()
-])
-
-const moneyText = add([
-    text("Money: $" + money),
-    pos(20,50),
-    fixed()
-])
-
 // Draw grid
-for(let x=0; x<GRID; x++){
-    for(let y=0; y<GRID; y++){
+for(let x=0; x<wGRID; x++){
+    for(let y=0; y<hGRID; y++){
 
         add([
-            rect(TILE-2, TILE-2),
-            pos(x*TILE, y*TILE+100),
+            rect(TILE, TILE),
+            pos(x*TILE+((width()%TILE)/2), y*TILE+((height()%TILE)/2)),
             color(100,200,100),
             area(),
             "tile",
@@ -47,7 +35,7 @@ onClick("tile",(tile)=>{
 
     const building = add([
         rect(40,40),
-        pos(tile.pos.x+12, tile.pos.y+12),
+        pos(tile.pos.x+5, tile.pos.y+5),
         color(0,150,0),
         area(),
         "building",
@@ -71,10 +59,10 @@ function spawnVisitor(){
 
     }
 
-    else if(roll < 0.66){
+    else if(roll < 0.9){
 
         money += 10
-        debug.log("Average tourist arrived")
+        debug.log("A New Tourist Has Arrived + £10")
 
     }
 
@@ -95,8 +83,12 @@ loop(4, ()=>{
 
     spawnVisitor()
 
-    ecoText.text = "Eco: " + eco
-    moneyText.text = "Money: $" + money
+
+    // also sync footer DOM if available
+    const ecoEl = document.getElementById("eco-score-value");
+    const moneyEl = document.getElementById("money-score-value");
+    if (ecoEl) ecoEl.innerText = eco;
+    if (moneyEl) moneyEl.innerText = money;
 
 })
 
