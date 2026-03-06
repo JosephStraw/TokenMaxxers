@@ -1,5 +1,5 @@
-#These are the ideas for our holiday game
-- 2.5D perspective
+#These are the ideas for our Token Maxxer's Holiday Tycoon
+- 2D perspective
 *inspo from Chris Sawyer's Rollercoaster Tycoon*
 
 #Carbon credit feature
