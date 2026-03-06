@@ -48,6 +48,24 @@ const buildingTypes = {
     }
 }
 
+const visitorTypes = (
+    ecoTourist = {
+        name: "Eco Tourist",
+        ecoImpact: +1,
+        moneyImpact: +5,
+    },
+    regularTourist = {
+        name: "Regular Tourist",
+        ecoImpact: 0,
+        moneyImpact: +10,
+    },
+    pollutingTourist = {
+        name: "Polluting Tourist",
+        ecoImpact: -2,
+        moneyImpact: +20,
+    }
+)
+
 // after types defined, preload sprites and prepare selection
 loadSprite("eco", buildingTypes.eco.lodge.path);
 loadSprite("normal", buildingTypes.normal.lodge.path);
