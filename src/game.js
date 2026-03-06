@@ -188,6 +188,20 @@ function spawnVisitor(){
 
 }
 
+function calcTax(buildings, buildingTypes) {
+    let tax = -1;
+    for(let i = 0; i < buildings.length; i++) {
+        if (buildings[i].type === "eco") {
+            tax -= buildingTypes.eco.lodge.moneyImpact;
+        } else if (buildings[i].type === "normal") {
+            tax -= buildingTypes.normal.lodge.moneyImpact;
+        } else if (buildings[i].type === "polluting") {
+            tax -= buildingTypes.polluting.lodge.moneyImpact;
+        }
+    }
+    return tax;
+}
+
 // Update every few seconds
 loop(tickRate, ()=>{
 
@@ -212,17 +226,7 @@ loop(tickRate, ()=>{
     }
 
     if (popEl) popEl.innerText = guests.length;
-    // make a function to calc the tax args should be (buildings object, buildingTypes object, tax a let var should only ever be a number)
-    tax = -1
-    for(let i = 0; i < buildings.length; i++) {
-        if (buildings[i].type === "eco") {
-            tax -= buildingTypes.eco.lodge.moneyImpact;
-        }else if (buildings[i].type === "normal") {
-            tax -= buildingTypes.normal.lodge.moneyImpact;
-        }else if (buildings[i].type === "polluting") {
-            tax -= buildingTypes.polluting.lodge.moneyImpact;
-        }
-    }
+    tax = calcTax(buildings, buildingTypes);
     
     // puts the tax rate on screen 
     if (taxEl) taxEl.innerText = tax;
