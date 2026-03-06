@@ -7,20 +7,16 @@ kaboom({
 
 })
 
-
-
 const tickRate = 3
 const TILE = 50
 const hGRID = Math.floor(height()/TILE)
 const wGRID = Math.floor(width()/TILE)
+
 let tax = -1
 let eco = 10
 let money = 100
-
 let buildings = []
 let guests = []
-
-// track whether the game has already ended so we don't trigger multiple lose events
 let gameOver = false;
 
 // define a dedicated scene for the lose screen
@@ -29,13 +25,11 @@ scene("lose", (data) => {
     add([
         text(msg, { size: 48, width: width() - 40 }),
         pos(width()/2, height()/2 - 40),
-        origin("center"),
         color(255, 0, 0),
     ]);
     add([
         text("Press [R] to restart", { size: 24 }),
         pos(width()/2, height()/2 + 40),
-        origin("center"),
         color(255, 255, 255),
     ]);
     onKeyPress("r", () => {
@@ -242,17 +236,15 @@ onUpdate(()=>{
         gameOver = true;
         let msg = "";
         if (eco <= 0 && money <= 0) {
-            msg = "Environment collapsed and you're broke!";
+            msg = "BROKE";
         } else if (eco <= 0) {
             msg = "ENVIRONMENT COLLAPSED";
         } else {
-            msg = "You ran out of money";
+            msg = "Brokey";
         }
         // show an immediate message before switching
         add([
             text(msg, { size: 40 }),
-            pos(width()/2, height()/2),
-            origin("center"),
             color(255, 0, 0)
         ]);
 
