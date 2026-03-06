@@ -19,6 +19,31 @@ let money = 100
 
 let buildings = []
 let guests = []
+
+// track whether the game has already ended so we don't trigger multiple lose events
+let gameOver = false;
+
+// define a dedicated scene for the lose screen
+scene("lose", (data) => {
+    const msg = data && data.message ? data.message : "You Lose!";
+    add([
+        text(msg, { size: 48, width: width() - 40 }),
+        pos(width()/2, height()/2 - 40),
+        origin("center"),
+        color(255, 0, 0),
+    ]);
+    add([
+        text("Press [R] to restart", { size: 24 }),
+        pos(width()/2, height()/2 + 40),
+        origin("center"),
+        color(255, 255, 255),
+    ]);
+    onKeyPress("r", () => {
+        // simple reload to reset state
+        window.location.reload();
+    });
+});
+
 const buildingTypes = {
     eco: {
         lodge: {
@@ -166,7 +191,10 @@ function spawnVisitor(){
 // Update every few seconds
 loop(tickRate, ()=>{
 
-    spawnVisitor()
+    if(buildings.length > 0 && guests.length < buildings.length * 5) {
+        spawnVisitor()
+
+    }
 
 
     // also sync footer DOM if available
@@ -184,6 +212,7 @@ loop(tickRate, ()=>{
     }
 
     if (popEl) popEl.innerText = guests.length;
+    // make a function to calc the tax args should be (buildings object, buildingTypes object, tax a let var should only ever be a number)
     tax = -1
     for(let i = 0; i < buildings.length; i++) {
         if (buildings[i].type === "eco") {
@@ -194,6 +223,8 @@ loop(tickRate, ()=>{
             tax -= buildingTypes.polluting.lodge.moneyImpact;
         }
     }
+    
+    // puts the tax rate on screen 
     if (taxEl) taxEl.innerText = tax;
 
 })
@@ -201,15 +232,27 @@ loop(tickRate, ()=>{
 // Lose condition
 onUpdate(()=>{
 
-    if(eco <= 0 || money <= 0){
+    if (gameOver) return; // only trigger once
+
+    if (eco <= 0 || money <= 0) {
+        gameOver = true;
+        let msg = "";
+        if (eco <= 0 && money <= 0) {
+            msg = "Environment collapsed and you're broke!";
+        } else if (eco <= 0) {
+            msg = "ENVIRONMENT COLLAPSED";
+        } else {
+            msg = "You ran out of money";
+        }
+        // show an immediate message before switching
         add([
-            text("ENVIRONMENT COLLAPSED", {size:40}),
-            pos(width()/2-200,height()/2),
-            color(255,0,0)
-        ])
+            text(msg, { size: 40 }),
+            pos(width()/2, height()/2),
+            origin("center"),
+            color(255, 0, 0)
+        ]);
 
-        wait(2,()=>go("lose"))
-
+        wait(2, () => go("lose", { message: msg }));
     }
 
 })
