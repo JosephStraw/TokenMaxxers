@@ -7,6 +7,9 @@ kaboom({
 
 })
 
+
+
+const tickRate = 10
 const TILE = 50
 const hGRID = Math.floor(height()/TILE)
 const wGRID = Math.floor(width()/TILE)
@@ -14,23 +17,52 @@ let eco = 10
 let money = 100
 
 let buildings = []
+let guests = []
 const buildingTypes = {
     eco: {
-        name: "Eco Friendly Building",
-        ecoImpact: 2,
-        moneyImpact: 5
+        lodge: {
+            name: "Eco Friendly Lodging",
+            ecoImpact: 2,
+            path: "assets/EcoFriendlyLodge.png",
+            moneyImpact: 5,
+            total: 0
+        }
     },
     normal: {
-        name: "Normal Building",
-        ecoImpact: 0,
-        moneyImpact: 10
+        lodge: {    
+            name: "Normal Lodging",
+            ecoImpact: 0,
+            path: "assets/normalLodge.png",
+            moneyImpact: 10,
+            total: 0
+        }
     },
     polluting: {
-        name: "Polluting Building",
-        ecoImpact: -2,
-        moneyImpact: 15
+        lodge: {
+            name: "Polluting Lodging",
+            ecoImpact: -2,
+            path: "assets/PolluterLodge.png",
+            moneyImpact: 15,
+            total: 0
+        }
     }
 }
+
+// after types defined, preload sprites and prepare selection
+loadSprite("eco", buildingTypes.eco.lodge.path);
+loadSprite("normal", buildingTypes.normal.lodge.path);
+loadSprite("polluting", buildingTypes.polluting.lodge.path);
+
+let selectedBuilding = null;
+
+window.addEventListener("DOMContentLoaded", ()=>{
+    const ecoBtn = document.getElementById("eco-Lodge");
+    const defBtn = document.getElementById("def-Lodge");
+    const polBtn = document.getElementById("pol-Lodge");
+    if(ecoBtn) ecoBtn.addEventListener("click", ()=> selectedBuilding = "eco");
+    if(defBtn) defBtn.addEventListener("click", ()=> selectedBuilding = "normal");
+    if(polBtn) polBtn.addEventListener("click", ()=> selectedBuilding = "polluting");
+});
 
 // Draw grid
 for(let x=0; x<wGRID; x++){
@@ -51,16 +83,30 @@ for(let x=0; x<wGRID; x++){
 
 // Place building on click
 onClick("tile",(tile)=>{
+    if (!selectedBuilding) {
+        debug.log("No building type selected!");
+        return; // no type chosen yet
+    }
 
-
+    // create sprite entity first so we can query its natural size
     const building = add([
-        rect(40,40),
-        pos(tile.pos.x+5, tile.pos.y+5),
-        color(0,150,0),
+        sprite(selectedBuilding),
         area(),
         "building",
-        {type:"eco"}
-    ])
+        {type:selectedBuilding}
+    ]);
+
+    // compute scale to fit inside TILE while preserving aspect
+    const w = building.width;
+    const h = building.height;
+    const s = Math.min(TILE / w, TILE / h) * 0.8; // 80% of tile size
+    building.scale = s;
+
+    // position verts so the sprite is centered in the tile
+    building.pos = vec2(
+        tile.pos.x + (TILE - w * s) / 2,
+        tile.pos.y + (TILE - h * s) / 2
+    );
 
     buildings.push(building)
 
@@ -99,7 +145,7 @@ function spawnVisitor(){
 }
 
 // Update every few seconds
-loop(4, ()=>{
+loop(tickRate, ()=>{
 
     spawnVisitor()
 
@@ -107,8 +153,12 @@ loop(4, ()=>{
     // also sync footer DOM if available
     const ecoEl = document.getElementById("eco-score-value");
     const moneyEl = document.getElementById("money-score-value");
+    const popEl = document.getElementById("pop-score-value");
+    const taxEl = document.getElementById("tax-score-value");
     if (ecoEl) ecoEl.innerText = eco;
     if (moneyEl) moneyEl.innerText = money;
+    if (popEl) popEl.innerText = guests.length;
+    if (taxEl) taxEl.innerText = tax;
 
 })
 
