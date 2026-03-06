@@ -14,6 +14,23 @@ let eco = 10
 let money = 100
 
 let buildings = []
+const buildingTypes = {
+    eco: {
+        name: "Eco Friendly Building",
+        ecoImpact: 2,
+        moneyImpact: 5
+    },
+    normal: {
+        name: "Normal Building",
+        ecoImpact: 0,
+        moneyImpact: 10
+    },
+    polluting: {
+        name: "Polluting Building",
+        ecoImpact: -2,
+        moneyImpact: 15
+    }
+}
 
 // Draw grid
 for(let x=0; x<wGRID; x++){
@@ -30,8 +47,11 @@ for(let x=0; x<wGRID; x++){
     }
 }
 
+
+
 // Place building on click
 onClick("tile",(tile)=>{
+
 
     const building = add([
         rect(40,40),

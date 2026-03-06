@@ -2,13 +2,12 @@
     --word-Color: #dd9206;
     --Title-Color: var(--word-Color);
     --Unfocused-Color: #816300;
-    --Clicked-Color: var(--word-Color);
+    --Clicked-Color: #c9c504;
     --Link-Color: var(--word-Color);
     --Background-Color: rgb(100, 200, 100);
     --Header-Background-Color: #005757;
     --Field-Background-Color: #1a3a3a;
 }
-
 body{
     margin: 0;
     background: var(--Background-Color);
@@ -27,22 +26,34 @@ header,footer{
 h1{
     margin:0;
     color: var(--Title-Color);
-    font-family: "Bitcount Grid Double", system-ui;
-    font-optical-sizing: auto;
-    font-weight: 350;
+    font-family: "VT323", monospace;
+    font-weight: 200;
     font-style: normal;
+    font-optical-sizing: auto;
     font-variation-settings: "wdth" 100;
 
 }
 h2,h3,h4,h5,p{
     color: var(--Title-Color);
     margin-bottom: 10px;
+    font-family: "VT323", monospace;
+    font-weight: 200;
+    font-style: normal;
+    font-optical-sizing: auto;
+    font-variation-settings: "wdth" 100;
+}
+li{
+    font-family: "VT323", monospace;
+    font-weight: 200;
+    font-style: normal;
+    line-height: 50px;
 }
 .li-style{
     display:flex;
     color: var(--Title-Color);
     padding-left: 10px;
 }
+
 .ul-style,footer{
     list-style: none;
     padding: 0;
@@ -56,4 +67,15 @@ h2,h3,h4,h5,p{
 }
 .li-style,.values{
     font-weight: 5000;
+}
+.building{
+    padding:0;
+    margin-left:20px;
+    justify-self: end;
+    max-height: 50px;
+    max-width: 50px;
+}
+.building:hover{
+    /* box-shadow: inset 0 0 0 50px; */
+    background: var(--Clicked-Color);
 }
