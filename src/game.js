@@ -9,10 +9,11 @@ kaboom({
 
 
 
-const tickRate = 10
+const tickRate = 3
 const TILE = 50
 const hGRID = Math.floor(height()/TILE)
 const wGRID = Math.floor(width()/TILE)
+let tax = -1
 let eco = 10
 let money = 100
 
@@ -174,8 +175,25 @@ loop(tickRate, ()=>{
     const popEl = document.getElementById("pop-score-value");
     const taxEl = document.getElementById("tax-score-value");
     if (ecoEl) ecoEl.innerText = eco;
-    if (moneyEl) moneyEl.innerText = money;
+    
+    if (moneyEl) {
+        if (money >= 0) {
+            money += tax;
+            moneyEl.innerText = money
+        }
+    }
+
     if (popEl) popEl.innerText = guests.length;
+    tax = -1
+    for(let i = 0; i < buildings.length; i++) {
+        if (buildings[i].type === "eco") {
+            tax -= buildingTypes.eco.lodge.moneyImpact;
+        }else if (buildings[i].type === "normal") {
+            tax -= buildingTypes.normal.lodge.moneyImpact;
+        }else if (buildings[i].type === "polluting") {
+            tax -= buildingTypes.polluting.lodge.moneyImpact;
+        }
+    }
     if (taxEl) taxEl.innerText = tax;
 
 })
@@ -183,7 +201,7 @@ loop(tickRate, ()=>{
 // Lose condition
 onUpdate(()=>{
 
-    if(eco <= 0){
+    if(eco <= 0 || money <= 0){
         add([
             text("ENVIRONMENT COLLAPSED", {size:40}),
             pos(width()/2-200,height()/2),
