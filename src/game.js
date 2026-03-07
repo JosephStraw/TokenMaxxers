@@ -8,7 +8,7 @@ kaboom({
 })
 
     const tickRate = 10
-    const TILE = 50
+    const TILE = 100
     const hGRID = Math.floor(height()/TILE)
     const wGRID = Math.floor(width()/TILE)
 
@@ -55,7 +55,7 @@ for(let x=0; x<wGRID; x++){
     for(let y=0; y<hGRID; y++){
         add([
             rect(TILE, TILE),
-            pos(x*TILE+((width()%TILE)), y*TILE+((height()%TILE))),
+            pos(x*TILE+((width()%TILE)/2), y*TILE+((height()%TILE)/2)),
             color(100,200,100),
             area(),
             "tile",
@@ -189,7 +189,6 @@ for (const cat in buildingTypes) {
         loadSprite(spriteName, buildingTypes[cat][kind].path);
     }
 }
-// load the startup logo so we can show it on the title screen
 loadSprite("startup", "assets/StartUpLogo.png");
 
 let currentTool = "build";
@@ -224,7 +223,6 @@ function initSelectors() {
         debug.log("bulldozer selected");
     });
 
-    // footer/canvas layering
     const canv = document.querySelector("canvas");
     const foot = document.querySelector("footer");
     if (canv && foot) {
@@ -242,7 +240,6 @@ if (document.readyState === "complete" || document.readyState === "interactive")
 }
 
 onClick("tile",(tile)=>{
-    // demolition mode takes precedence
     if (currentTool === "bulldozer") {
         if (!tile.occupied) {
             debug.log("Nothing to bulldoze");
