@@ -7,28 +7,72 @@ kaboom({
 
 })
 
-const tickRate = 10
-const TILE = 50
-const hGRID = Math.floor(height()/TILE)
-const wGRID = Math.floor(width()/TILE)
+    const tickRate = 10
+    const TILE = 50
+    const hGRID = Math.floor(height()/TILE)
+    const wGRID = Math.floor(width()/TILE)
 
-let tax = -1
-let eco = 10
-let money = 10000
-let buildings = []
-let guests = []
-let gameOver = false;
+    let tax = -1
+    let eco = 10
+    let money = 10000
+    let buildings = []
+    let guests = []
+    let gameOver = false;
 
+function initGame() {
+
+    tax = -1;
+    eco = 10;
+    money = 10000;
+    buildings = [];
+    guests = [];
+    gameOver = false;
+}
+
+// start screen scene
+loadSprite("logo","assets/StartUpLogo.png");
+scene("start", () => {
+    add([
+        sprite("logo"),
+        scale(0.6),
+        pos(0, 0),
+    ]);
+    add([
+        text("Press [Enter] or click to begin", { size: 28 }),
+        pos(10,10),
+        color(255,255,255)
+    ]);
+    onKeyPress("enter", () => go("main"));
+    onClick(() => go("main"));
+});
+
+// main game scene
+scene("main", () => {
+    initGame();
+
+
+for(let x=0; x<wGRID; x++){
+    for(let y=0; y<hGRID; y++){
+        add([
+            rect(TILE, TILE),
+            pos(x*TILE+((width()%TILE)), y*TILE+((height()%TILE))),
+            color(100,200,100),
+            area(),
+            "tile",
+            {gx:x, gy:y, occupied: false}  
+        ])
+    }
+}
 scene("lose", (data) => {
     const msg = data && data.message ? data.message : "You Lose!";
     add([
         text(msg, { size: 48, width: width() - 40 }),
-        pos(width()/2, height()/2 - 40),
+        pos(0,0),
         color(255, 0, 0),
     ]);
     add([
         text("Press [R] to restart", { size: 24 }),
-        pos(width()/2, height()/2 + 40),
+        pos(0,0),
         color(255, 255, 255),
     ]);
     onKeyPress("r", () => {
@@ -145,9 +189,10 @@ for (const cat in buildingTypes) {
         loadSprite(spriteName, buildingTypes[cat][kind].path);
     }
 }
+// load the startup logo so we can show it on the title screen
+loadSprite("startup", "assets/StartUpLogo.png");
 
 let currentTool = "build";
-
 let selectedBuilding = null;
 
 function makeSelector(buttonId, category, kind) {
@@ -159,7 +204,7 @@ function makeSelector(buttonId, category, kind) {
     });
 }
 
-window.addEventListener("DOMContentLoaded", ()=>{
+function initSelectors() {
     makeSelector("eco-Lodge", "eco", "lodge");
     makeSelector("def-Lodge", "normal", "lodge");
     makeSelector("pol-Lodge", "polluting", "lodge");
@@ -178,24 +223,23 @@ window.addEventListener("DOMContentLoaded", ()=>{
         selectedBuilding = null;
         debug.log("bulldozer selected");
     });
-});
 
-for(let x=0; x<wGRID; x++){
-    for(let y=0; y<hGRID; y++){
-
-        add([
-            rect(TILE, TILE),
-            pos(x*TILE+((width()%TILE)/2), y*TILE+((height()%TILE)/2)),
-            color(100,200,100),
-            area(),
-            "tile",
-            {gx:x, gy:y, occupied: false}  
-        ])
+    // footer/canvas layering
+    const canv = document.querySelector("canvas");
+    const foot = document.querySelector("footer");
+    if (canv && foot) {
+        canv.style.zIndex = "0";
+        foot.style.position = "relative";
+        foot.style.zIndex = "1";
+        debug.log("layout", canv.getBoundingClientRect(), foot.getBoundingClientRect());
     }
 }
 
-
-
+if (document.readyState === "complete" || document.readyState === "interactive") {
+    initSelectors();
+} else {
+    window.addEventListener("DOMContentLoaded", initSelectors);
+}
 
 onClick("tile",(tile)=>{
     // demolition mode takes precedence
@@ -365,3 +409,7 @@ onUpdate(()=>{
         wait(2, () => go("lose", { message: msg }));
     }
 })
+
+});
+
+if (typeof go === "function") go("start");
