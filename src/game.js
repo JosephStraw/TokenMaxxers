@@ -40,9 +40,9 @@ const buildingTypes = {
     eco: {
         lodge: {
             name: "Eco Friendly Lodging",
-            ecoImpact: 2,
+            ecoImpact: 0.5,
             path: "assets/EcoFriendlyLodge.png",
-            moneyImpact: 5,
+            moneyImpact: 2,
             price: 20,
             total: 0
         },
