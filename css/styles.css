@@ -1,11 +1,11 @@
 :root{
-    --word-Color: #dd9206;
+    --word-Color: #0000006b;
     --Title-Color: var(--word-Color);
     --Unfocused-Color: #816300;
     --Clicked-Color: #c9c504;
     --Link-Color: var(--word-Color);
     --Background-Color: rgb(32, 99, 32);
-    --Header-Background-Color: #005757;
+    --Header-Background-Color: #c1db7a;
     --Field-Background-Color: #1a3a3a;
 }
 body{
@@ -86,8 +86,6 @@ ul{
     font-weight: 1000;
 }
 .building{
-    /* padding:10px; */
-    /* margin-left:20px; */
     max-height: 60px;
     max-width: 60px;
 }

@@ -42,7 +42,7 @@ const buildingTypes = {
             name: "Eco Friendly Lodging",
             ecoImpact: 2,
             path: "assets/EcoFriendlyLodge.png",
-            moneyImpact: 5,
+            moneyImpact: 40,
             price: 20,
             total: 0
         },
@@ -62,8 +62,7 @@ const buildingTypes = {
             price: 20,
             total: 0
         }
-    },
-    normal: {
+    },normal: {
         lodge: {
             name: "Normal Lodging",
             ecoImpact: 0,
@@ -88,8 +87,7 @@ const buildingTypes = {
             price: 10,
             total: 0
         }
-    },
-    polluting: {
+    },polluting: {
         lodge: {
             name: "Polluting Lodging",
             ecoImpact: -2,
@@ -117,23 +115,26 @@ const buildingTypes = {
     }
 }
 
-const visitorTypes = (
-    ecoTourist = {
+const visitorTypes = [
+    {
         name: "Eco Tourist",
+        category: "eco",
         ecoImpact: +1,
         moneyImpact: +5,
     },
-    regularTourist = {
+    {
         name: "Regular Tourist",
+        category: "normal",
         ecoImpact: 0,
         moneyImpact: +10,
     },
-    pollutingTourist = {
+    {
         name: "Polluting Tourist",
+        category: "polluting",
         ecoImpact: -2,
         moneyImpact: +20,
     }
-)
+];
 
 function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -171,11 +172,10 @@ window.addEventListener("DOMContentLoaded", ()=>{
     makeSelector("def-Transport", "normal", "transport");
     makeSelector("pol-Transport", "polluting", "transport");
 
-    // bulldozer button setup
     const bd = document.getElementById("bulldozer");
     if (bd) bd.addEventListener("click", () => {
         currentTool = "bulldozer";
-        selectedBuilding = null;           // clear any previous building choice
+        selectedBuilding = null;
         debug.log("bulldozer selected");
     });
 });
@@ -250,7 +250,7 @@ onClick("tile",(tile)=>{
         "building",
         { category, kind }
     ]);
-    // remember which tile this building occupies
+
     building.tile = tile;
 
     const w = building.width;
@@ -277,38 +277,32 @@ onClick("tile",(tile)=>{
     } else {
         debug.log("YOU ARE TOO POOR !!!!!!!!!");
     }
-
 })
 
 function spawnVisitor(){
+    const counts = {};
+    buildings.forEach(b => {
+        if (b.category) {
+            counts[b.category] = (counts[b.category] || 0) + 1;
+        }
+    });
 
-    let roll = rand(0,1)
+    let pool = [];
+    visitorTypes.forEach(vt => {
+        const w = counts[vt.category] || 0;
+        for (let i = 0; i < w; i++) {
+            pool.push(vt);
+        }
+    });
 
-    if(roll < 0.33){
-
-        eco += 1
-        money += 5
-        debug.log("Eco tourist arrived")
-
+    if (pool.length === 0) {
+        pool = visitorTypes.slice();
     }
-
-    else if(roll < 0.9){
-
-        money += 10
-        debug.log("A New Tourist Has Arrived + £10")
-
-    }
-
-    else{
-
-        eco -= 2
-        money += 30
-        debug.log("Polluting rich tourist arrived")
-
-    }
-
-    eco = Math.max(0, Math.min(10, eco))
-
+    const vt = pool[Math.floor(rand(0, pool.length - 1))];
+    eco = Math.max(0, Math.min(10, eco + vt.ecoImpact));
+    money += vt.moneyImpact;
+    debug.log(`${vt.name} arrived`);
+    guests.push(vt);
 }
 
 function calcTax(buildings, buildingTypes) {
