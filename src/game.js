@@ -7,7 +7,7 @@ kaboom({
 
 })
 
-const tickRate = 3
+const tickRate = 10
 const TILE = 50
 const hGRID = Math.floor(height()/TILE)
 const wGRID = Math.floor(width()/TILE)
@@ -19,7 +19,6 @@ let buildings = []
 let guests = []
 let gameOver = false;
 
-// define a dedicated scene for the lose screen
 scene("lose", (data) => {
     const msg = data && data.message ? data.message : "You Lose!";
     add([
@@ -33,7 +32,6 @@ scene("lose", (data) => {
         color(255, 255, 255),
     ]);
     onKeyPress("r", () => {
-        // simple reload to reset state
         window.location.reload();
     });
 });
@@ -45,6 +43,7 @@ const buildingTypes = {
             ecoImpact: 2,
             path: "assets/EcoFriendlyLodge.png",
             moneyImpact: 5,
+            price: 20,
             total: 0
         }
     },
@@ -54,6 +53,7 @@ const buildingTypes = {
             ecoImpact: 0,
             path: "assets/normalLodge.png",
             moneyImpact: 10,
+            price: 10,
             total: 0
         }
     },
@@ -63,6 +63,7 @@ const buildingTypes = {
             ecoImpact: -2,
             path: "assets/PolluterLodge.png",
             moneyImpact: 15,
+            price: 5,
             total: 0
         }
     }
@@ -127,12 +128,12 @@ onClick("tile",(tile)=>{
     }
 
     // create sprite entity first so we can query its natural size
-    const building = add([
-        sprite(selectedBuilding),
-        area(),
-        "building",
-        {type:selectedBuilding}
-    ]);
+        const building = add([
+            sprite(selectedBuilding),
+            area(),
+            "building",
+            {type:selectedBuilding}
+        ]);
 
     // compute scale to fit inside TILE while preserving aspect
     const w = building.width;
@@ -146,7 +147,29 @@ onClick("tile",(tile)=>{
         tile.pos.y + (TILE - h * s) / 2
     );
 
-    buildings.push(building)
+    // add to the stack
+    // selectedBuilding is a string like "eco" or "normal", not an object, so
+    // `selectedBuilding.price` was always undefined.  look up the price in
+    // buildingTypes instead and subtract from money when purchased.
+    const price = buildingTypes[selectedBuilding].lodge.price;
+    if (price <= money) {
+        money -= price;                  // pay for the building
+        buildings.push(building);
+
+        const taxEl = document.getElementById("tax-score-value");
+        tax = calcTax(buildings, buildingTypes);
+        if (taxEl) taxEl.innerText = tax;
+
+        const moneyEl = document.getElementById("money-score-value");
+        if (moneyEl) {
+            if (money >= 0) {
+                money += tax;
+                moneyEl.innerText = money
+            }
+        }
+    } else {
+        debug.log("YOU ARE TOO POOR !!!!!!!!!");
+    }
 
 })
 
@@ -207,11 +230,10 @@ loop(tickRate, ()=>{
 
     // also sync footer DOM if available
     const ecoEl = document.getElementById("eco-score-value");
-    const moneyEl = document.getElementById("money-score-value");
     const popEl = document.getElementById("pop-score-value");
-    const taxEl = document.getElementById("tax-score-value");
     if (ecoEl) ecoEl.innerText = eco;
     
+    const moneyEl = document.getElementById("money-score-value");
     if (moneyEl) {
         if (money >= 0) {
             money += tax;
@@ -220,17 +242,17 @@ loop(tickRate, ()=>{
     }
 
     if (popEl) popEl.innerText = guests.length;
+
+    const taxEl = document.getElementById("tax-score-value");
     tax = calcTax(buildings, buildingTypes);
-    
-    // puts the tax rate on screen 
     if (taxEl) taxEl.innerText = tax;
+    
 
 })
 
-// Lose condition
 onUpdate(()=>{
 
-    if (gameOver) return; // only trigger once
+    if (gameOver) return;
 
     if (eco <= 0 || money <= 0) {
         gameOver = true;
