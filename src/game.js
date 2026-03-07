@@ -14,7 +14,7 @@ const wGRID = Math.floor(width()/TILE)
 
 let tax = -1
 let eco = 10
-let money = 100
+let money = 10000
 let buildings = []
 let guests = []
 let gameOver = false;
@@ -45,14 +45,46 @@ const buildingTypes = {
             moneyImpact: 5,
             price: 20,
             total: 0
+        },
+        shop: {
+            name: "Eco Friendly Shop",
+            ecoImpact: 1,
+            path: "assets/EcoFriendlyShop.png",
+            moneyImpact: 10,
+            price: 15,
+            total: 0
+        },
+        transport: {
+            name: "Eco Friendly Transport",
+            ecoImpact: 3,
+            path: "assets/EcoFriendlyTransport.png",
+            moneyImpact: 15,
+            price: 20,
+            total: 0
         }
     },
     normal: {
-        lodge: {    
+        lodge: {
             name: "Normal Lodging",
             ecoImpact: 0,
-            path: "assets/normalLodge.png",
+            path: "assets/NormalLodge.png",
             moneyImpact: 10,
+            price: 10,
+            total: 0
+        },
+        shop: {
+            name: "Normal Shop",
+            ecoImpact: 0,
+            path: "assets/NormalShop.png",
+            moneyImpact: 10,
+            price: 15,
+            total: 0
+        },
+        transport: {
+            name: "Normal Transport",
+            ecoImpact: 0,
+            path: "assets/NormalTransport.png",
+            moneyImpact: 15,
             price: 10,
             total: 0
         }
@@ -64,6 +96,22 @@ const buildingTypes = {
             path: "assets/PolluterLodge.png",
             moneyImpact: 15,
             price: 5,
+            total: 0
+        },
+        shop: {
+            name: "Polluting Shop",
+            ecoImpact: -1,
+            path: "assets/PolluterShop.png",
+            moneyImpact: 20,
+            price: 10,
+            total: 0
+        },
+        transport: {
+            name: "Polluting Transport",
+            ecoImpact: -3,
+            path: "assets/PolluterTransport.png",
+            moneyImpact: 25,
+            price: 20,
             total: 0
         }
     }
@@ -87,23 +135,51 @@ const visitorTypes = (
     }
 )
 
-// after types defined, preload sprites and prepare selection
-loadSprite("eco", buildingTypes.eco.lodge.path);
-loadSprite("normal", buildingTypes.normal.lodge.path);
-loadSprite("polluting", buildingTypes.polluting.lodge.path);
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+for (const cat in buildingTypes) {
+    for (const kind in buildingTypes[cat]) {
+        const spriteName = cat + capitalize(kind);
+        loadSprite(spriteName, buildingTypes[cat][kind].path);
+    }
+}
+
+let currentTool = "build";
 
 let selectedBuilding = null;
 
+function makeSelector(buttonId, category, kind) {
+    const btn = document.getElementById(buttonId);
+    if (btn) btn.addEventListener("click", () => {
+        currentTool = "build";
+        selectedBuilding = { category, kind };
+        debug.log(`selected ${category} ${kind}`);
+    });
+}
+
 window.addEventListener("DOMContentLoaded", ()=>{
-    const ecoBtn = document.getElementById("eco-Lodge");
-    const defBtn = document.getElementById("def-Lodge");
-    const polBtn = document.getElementById("pol-Lodge");
-    if(ecoBtn) ecoBtn.addEventListener("click", ()=> selectedBuilding = "eco");
-    if(defBtn) defBtn.addEventListener("click", ()=> selectedBuilding = "normal");
-    if(polBtn) polBtn.addEventListener("click", ()=> selectedBuilding = "polluting");
+    makeSelector("eco-Lodge", "eco", "lodge");
+    makeSelector("def-Lodge", "normal", "lodge");
+    makeSelector("pol-Lodge", "polluting", "lodge");
+
+    makeSelector("eco-Shop", "eco", "shop");
+    makeSelector("def-Shop", "normal", "shop");
+    makeSelector("pol-Shop", "polluting", "shop");
+
+    makeSelector("eco-Transport", "eco", "transport");
+    makeSelector("def-Transport", "normal", "transport");
+    makeSelector("pol-Transport", "polluting", "transport");
+
+    // bulldozer button setup
+    const bd = document.getElementById("bulldozer");
+    if (bd) bd.addEventListener("click", () => {
+        currentTool = "bulldozer";
+        selectedBuilding = null;           // clear any previous building choice
+        debug.log("bulldozer selected");
+    });
 });
 
-// Draw grid
 for(let x=0; x<wGRID; x++){
     for(let y=0; y<hGRID; y++){
 
@@ -113,67 +189,97 @@ for(let x=0; x<wGRID; x++){
             color(100,200,100),
             area(),
             "tile",
-            {gx:x, gy:y}
+            {gx:x, gy:y, occupied: false}  
         ])
     }
 }
 
 
 
-// Place building on click
+
 onClick("tile",(tile)=>{
-    if (!selectedBuilding) {
-        debug.log("No building type selected!");
-        return; // no type chosen yet
+    // demolition mode takes precedence
+    if (currentTool === "bulldozer") {
+        if (!tile.occupied) {
+            debug.log("Nothing to bulldoze");
+            return;
+        }
+        // find the building that sits on this tile
+        const b = buildings.find(b => b.tile === tile);
+        if (b) {
+            const def = buildingTypes[b.category] && buildingTypes[b.category][b.kind];
+            if (def) {
+                const refund = Math.floor(def.price * 0.6);
+                money += refund;
+                const moneyEl = document.getElementById("money-score-value");
+                if (moneyEl) moneyEl.innerText = money;
+            }
+            destroy(b);
+            buildings = buildings.filter(x => x !== b);
+        }
+        tile.occupied = false;
+        return;
     }
 
-    // create sprite entity first so we can query its natural size
-        const building = add([
-            sprite(selectedBuilding),
-            area(),
-            "building",
-            {type:selectedBuilding}
-        ]);
+    if (!selectedBuilding) {
+        debug.log("No building type selected!");
+        return;
+    }
+    if (tile.occupied) {
+        debug.log("Tile already has a building");
+        return;
+    }
 
-    // compute scale to fit inside TILE while preserving aspect
+    const { category, kind } = selectedBuilding;
+    const typeDef = buildingTypes[category] && buildingTypes[category][kind];
+    if (!typeDef) {
+        debug.log("invalid building selection", selectedBuilding);
+        return;
+    }
+    const price = typeDef.price;
+    if (price > money) {
+        debug.log("Not enough money for that building");
+        return;
+    }
+    money -= price;
+
+    const spriteName = category + capitalize(kind);
+    const building = add([
+        sprite(spriteName),
+        area(),
+        "building",
+        { category, kind }
+    ]);
+    // remember which tile this building occupies
+    building.tile = tile;
+
     const w = building.width;
     const h = building.height;
-    const s = Math.min(TILE / w, TILE / h) * 0.8; // 80% of tile size
+    const s = Math.min(TILE / w, TILE / h) * 0.8; 
     building.scale = s;
 
-    // position verts so the sprite is centered in the tile
     building.pos = vec2(
         tile.pos.x + (TILE - w * s) / 2,
         tile.pos.y + (TILE - h * s) / 2
     );
 
-    // add to the stack
-    // selectedBuilding is a string like "eco" or "normal", not an object, so
-    // `selectedBuilding.price` was always undefined.  look up the price in
-    // buildingTypes instead and subtract from money when purchased.
-    const price = buildingTypes[selectedBuilding].lodge.price;
-    if (price <= money) {
-        money -= price;                  // pay for the building
-        buildings.push(building);
 
-        const taxEl = document.getElementById("tax-score-value");
-        tax = calcTax(buildings, buildingTypes);
-        if (taxEl) taxEl.innerText = tax;
+    buildings.push(building);
+    
+    tile.occupied = true;
+    const taxEl = document.getElementById("tax-score-value");
+    tax = calcTax(buildings, buildingTypes);
+    if (taxEl) taxEl.innerText = tax;
 
-        const moneyEl = document.getElementById("money-score-value");
-        if (moneyEl) {
-            if (money >= 0) {
-                money += tax;
-                moneyEl.innerText = money
-            }
-        }
+    const moneyEl = document.getElementById("money-score-value");
+    if (moneyEl) {
+        moneyEl.innerText = money;
     } else {
         debug.log("YOU ARE TOO POOR !!!!!!!!!");
     }
 
 })
 
-// Visitor simulation
 function spawnVisitor(){
 
     let roll = rand(0,1)
@@ -207,19 +313,17 @@ function spawnVisitor(){
 
 function calcTax(buildings, buildingTypes) {
     let tax = -1;
-    for(let i = 0; i < buildings.length; i++) {
-        if (buildings[i].type === "eco") {
-            tax -= buildingTypes.eco.lodge.moneyImpact;
-        } else if (buildings[i].type === "normal") {
-            tax -= buildingTypes.normal.lodge.moneyImpact;
-        } else if (buildings[i].type === "polluting") {
-            tax -= buildingTypes.polluting.lodge.moneyImpact;
+    for (let i = 0; i < buildings.length; i++) {
+        const b = buildings[i];
+        const cat = b.category;
+        const kind = b.kind;
+        if (cat && kind && buildingTypes[cat] && buildingTypes[cat][kind]) {
+            tax -= buildingTypes[cat][kind].moneyImpact;
         }
     }
     return tax;
 }
 
-// Update every few seconds
 loop(tickRate, ()=>{
 
     if(buildings.length > 0 && guests.length < buildings.length * 5) {
@@ -228,7 +332,6 @@ loop(tickRate, ()=>{
     }
 
 
-    // also sync footer DOM if available
     const ecoEl = document.getElementById("eco-score-value");
     const popEl = document.getElementById("pop-score-value");
     if (ecoEl) ecoEl.innerText = eco;
@@ -240,14 +343,11 @@ loop(tickRate, ()=>{
             moneyEl.innerText = money
         }
     }
-
     if (popEl) popEl.innerText = guests.length;
 
     const taxEl = document.getElementById("tax-score-value");
     tax = calcTax(buildings, buildingTypes);
     if (taxEl) taxEl.innerText = tax;
-    
-
 })
 
 onUpdate(()=>{
@@ -264,13 +364,10 @@ onUpdate(()=>{
         } else {
             msg = "Brokey";
         }
-        // show an immediate message before switching
         add([
             text(msg, { size: 40 }),
             color(255, 0, 0)
         ]);
-
         wait(2, () => go("lose", { message: msg }));
     }
-
 })
